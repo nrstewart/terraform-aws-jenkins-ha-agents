@@ -99,14 +99,14 @@ resource "aws_security_group" "lb_sg" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["${var.public_cidr_ingress}"]
+    cidr_blocks = "${var.public_cidr_ingress}"
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["${var.private_cidr_ingress}"]
+    cidr_blocks = "${var.private_cidr_ingress}"
   }
 
   egress {
