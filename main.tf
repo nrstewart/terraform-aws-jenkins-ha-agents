@@ -389,12 +389,14 @@ data "template_cloudinit_config" "agent_init" {
   part {
     filename     = "agent.cfg"
     content_type = "text/cloud-config"
-    content      = "${data.template_file.agent_write_files.rendered}"
+    #content      = "${data.template_file.agent_write_files.rendered}"
+    content      = "${templatefile("${path.module}/init/agent-write-files.cfg", { agent_logs = "${aws_cloudwatch_log_group.agent_logs.name}", aws_region = "${var.region}", executors = "${var.executors}", swarm_version = "${var.swarm_version}"} )}"
   }
 
   part {
     content_type = "text/cloud-config"
-    content      = "${data.template_file.agent_runcmd.rendered}"
+    #content      = "${data.template_file.agent_runcmd.rendered}"
+    content      = "${templatefile("${path.module}/init/agent-runcmd.cfg", { master_asg = "${aws_autoscaling_group.master_asg.name}", aws_region = "${var.region}", api_ssm_parameter = "${var.ssm_parameter}${var.api_ssm_parameter}", swarm_version = "${var.swarm_version}"} )}"
   }
 
   part {
@@ -405,36 +407,37 @@ data "template_cloudinit_config" "agent_init" {
 
   part {
     content_type = "text/cloud-config"
-    content      = "${data.template_file.agent_end.rendered}"
+    #content      = "${data.template_file.agent_end.rendered}"
+    content      = "${templatefile("${path.module}/init/agent-end.cfg")}"
     merge_type   = "list(append)+dict(recurse_array)+str()"
   }
 }
 
-data "template_file" "agent_write_files" {
-  template = "${file("${path.module}/init/agent-write-files.cfg")}"
-
-  vars {
-    agent_logs    = "${aws_cloudwatch_log_group.agent_logs.name}"
-    aws_region    = "${var.region}"
-    executors     = "${var.executors}"
-    swarm_version = "${var.swarm_version}"
-  }
-}
-
-data "template_file" "agent_runcmd" {
-  template = "${file("${path.module}/init/agent-runcmd.cfg")}"
-
-  vars {
-    aws_region        = "${var.region}"
-    master_asg        = "${aws_autoscaling_group.master_asg.name}"
-    swarm_version     = "${var.swarm_version}"
-    api_ssm_parameter = "${var.ssm_parameter}${var.api_ssm_parameter}"
-  }
-}
-
-data "template_file" "agent_end" {
-  template = "${file("${path.module}/init/agent-end.cfg")}"
-}
+#data "template_file" "agent_write_files" {
+#  template = "${file("${path.module}/init/agent-write-files.cfg")}"
+#
+#  vars {
+#    agent_logs    = "${aws_cloudwatch_log_group.agent_logs.name}"
+#    aws_region    = "${var.region}"
+#    executors     = "${var.executors}"
+#    swarm_version = "${var.swarm_version}"
+#  }
+#}
+#
+#data "template_file" "agent_runcmd" {
+#  template = "${file("${path.module}/init/agent-runcmd.cfg")}"
+#
+#  vars {
+#    aws_region        = "${var.region}"
+#    master_asg        = "${aws_autoscaling_group.master_asg.name}"
+#    swarm_version     = "${var.swarm_version}"
+#    api_ssm_parameter = "${var.ssm_parameter}${var.api_ssm_parameter}"
+#  }
+#}
+#
+#data "template_file" "agent_end" {
+#  template = "${file("${path.module}/init/agent-end.cfg")}"
+#}
 
 resource "aws_autoscaling_policy" "agent_scale_up_policy" {
   name                   = "${var.application}-agent-up-policy"
